@@ -4,43 +4,50 @@
 #include "rtc.h"
 #include "stdbool.h"
 #include "stddef.h"
-#include "stm32f411xe.h"
+#include "chip_headers/CMSIS/Device/ST/STM32F4xx/Include/stm32f411xe.h"
 #include "tim.h"
 #include "userButton.h"
 #include <stdint.h>
 
+#define PAUSE_DURATION 500
+#define TIMCLOCK_RESET_DURATION 800
+#define BEEP_FUNC_DURATION 50
+
+// timer intervals
 int32_t timerSecs = 0;
 int32_t timerMins = 0;
 
+// clock
 TimeStruct time = {0, 0, 0, 0};
 DateStruct date = {1, 1, 1, 0};
 
+// timer flags
 bool isTiming = false;
 bool isTimerFinished = true;
 
+// device modes and state
 enum { CLOCK, TIMER } mode = CLOCK;
 volatile bool isButtonPressed = false;
 
 // handles userButton and sets the curFunc based on the button pressed
 void handleButton();
 
-// // sets the isButtonPressed Flag
-// void EXTI15_10_IRQHandler();
+// sets the isButtonPressed Flag
+void EXTI15_10_IRQHandler();
 
 // Resets/sets the timer or clock based on the mode
-// Uses the user button for setting the individual seconds and minutes
-// PRE: interrupts to the button must be turned off
+// Uses the user button for setting the individual timer/clock values
 void timerClockSetMode();
 
-// Counts down the timer when in timer mode
+// Counts down the timer when in timer/clock mode
 void timerMode();
 
-// shows the clock in clock mode
+// shows the clock in clock mode, counts timer if timer is on
 void clockMode();
 
 // helpers
 // counts the timer if isTiming is true,
-// if timer reaches zero it would switch to timermode to sound the alarmI
+// if timer reaches zero it would switch to timermode to sound the alarm
 void timerCount();
 
 void (*timerFunc)() = timerMode;
@@ -123,7 +130,7 @@ void timerClockSetMode(void) {
       displayTime4Dig(firHalf, secHalf, timer2Ptr, 1, &isButtonPressed);
 
       if (timePressed == 500) {
-        beep(2, 50, timer2Ptr, &isButtonPressed);
+        beep(2, BEEP_FUNC_DURATION, timer2Ptr, &isButtonPressed);
       }
     }
 
@@ -166,10 +173,9 @@ void timerClockSetMode(void) {
   setExti13Interupt(true); // enable interupts again
 }
 
-// Clean ISR - sets state flag quickly and returns immediately
 void EXTI15_10_IRQHandler(void) {
   if (EXTI->PR & LINE13) {
-    EXTI->PR = LINE13; // Clear pending registe
+    EXTI->PR = LINE13; // Clear pending register
 
     (void)EXTI->PR;
 
@@ -198,20 +204,21 @@ void handleButton() {
                       &isButtonPressed);
     }
 
-    if (timePressed == 500 && mode == TIMER) { // equivalant to 2 seconds
+    if (timePressed == PAUSE_DURATION &&
+        mode == TIMER) { // equivalant to 2 seconds
       // entered paused mode in timer
-      beep(2, 50, timer2Ptr, &isButtonPressed);
+      beep(2, BEEP_FUNC_DURATION, timer2Ptr, &isButtonPressed);
     }
 
-    if (timePressed == 800) { // equivalant to 4 seconds
+    if (timePressed == TIMCLOCK_RESET_DURATION) { // equivalant to 4 seconds
       // entered reset mode
-      beep(4, 50, timer2Ptr, &isButtonPressed);
+      beep(4, BEEP_FUNC_DURATION, timer2Ptr, &isButtonPressed);
     }
   }
 
-  if (timePressed >= 1000) {
+  if (timePressed >= TIMCLOCK_RESET_DURATION) {
     curFunc = timerClockSetMode;
-  } else if (timePressed >= 500 && mode == TIMER) {
+  } else if (timePressed >= PAUSE_DURATION && mode == TIMER) {
     if (isTiming) {
       isTiming = false;
     } else if (!isTimerFinished) {
@@ -220,15 +227,15 @@ void handleButton() {
 
     timerFunc = curFunc; // presist state of timer when in clock mode
   } else {
-    beep(1, 50, timer2Ptr, &isButtonPressed);
+    beep(1, BEEP_FUNC_DURATION, timer2Ptr, &isButtonPressed);
     if (mode == TIMER) {
       curFunc = clockMode;
       mode = CLOCK;
-      displayStringStatic("C", timer2Ptr, 500, &isButtonPressed);
+      displayStringStatic("C", timer2Ptr, 300, &isButtonPressed);
     } else {
       curFunc = timerFunc;
       mode = TIMER;
-      displayStringStatic("P", timer2Ptr, 500, &isButtonPressed);
+      displayStringStatic("P", timer2Ptr, 300, &isButtonPressed);
     }
   }
 

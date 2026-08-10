@@ -1,6 +1,7 @@
-/* User Button !!!*/
 #include "stdbool.h"
-#include "stm32f411xe.h"
+#include "chip_headers/CMSIS/Device/ST/STM32F4xx/Include/stm32f411xe.h"
+
+#define BUTTON_FLAG (1U << 13)
 
 void initUserButton() {
   RCC->AHB1ENR |= (1U << 2);
@@ -11,7 +12,7 @@ bool isUserButtonPressed() {
   uint32_t inputVal = GPIOC->IDR;
 
   // button is not pressed
-  if (inputVal & (1Ul << 13)) {
+  if (inputVal & BUTTON_FLAG) {
     return false;
   }
 

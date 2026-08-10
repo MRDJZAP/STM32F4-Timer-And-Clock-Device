@@ -1,5 +1,5 @@
 #include "stdbool.h"
-#include "stm32f411xe.h"
+#include "chip_headers/CMSIS/Device/ST/STM32F4xx/Include/stm32f411xe.h"
 #include "stringMod.h"
 #include "tim.h"
 #include <stdint.h>
@@ -22,38 +22,51 @@ bool numBuffer[10][7] = {
     {true, true, true, true, false, true, true}      // 9
 };
 
+// array of possible characters (A-Z)
 bool charBuffer[26][7] = {
     // a      b      c      d      e      f      g
-    {true,  true,  true,  false, true,  true,  true }, // A
-    {false, false, true,  true,  true,  true,  true }, // B (lowercase 'b' style for clarity)
-    {true,  false, false, true,  true,  true,  false}, // C
-    {false, true,  true,  true,  true,  false, true }, // D (lowercase 'd' style for clarity)
-    {true,  false, false, true,  true,  true,  true }, // E
-    {true,  false, false, false, true,  true,  true }, // F
-    {true,  false, true,  true,  true,  true,  false}, // G
-    {false, true,  true,  false, true,  true,  true }, // H
-    {false, true,  true,  false, false, false, false}, // I (uses right side 'b' and 'c')
-    {false, true,  true,  true,  true,  false, false}, // J
-    {false, false, false, false, false, false, false}, // K (Not possible on 7-segment)
-    {false, false, false, true,  true,  true,  false}, // L
-    {false, false, false, false, false, false, false}, // M (Not possible on 7-segment)
-    {false, false, true,  false, true,  false, true }, // N (lowercase 'n' style for clarity)
-    {true,  true,  true,  true,  true,  true,  false}, // O
-    {true,  true,  false, false, true,  true,  true }, // P
-    {true,  true,  true,  false, false, true,  true }, // Q
-    {false, false, false, false, true,  false, true }, // R (lowercase 'r' style for clarity)
-    {true,  false, true,  true,  false, true,  true }, // S
-    {false, false, false, false, false, true,  true }, // T (Not possible on 7-segment)
-    {false, true,  true,  true,  true,  true,  false}, // U
-    {false, false, false, false, false, false, false}, // V (Not possible on 7-segment)
-    {false, false, false, false, false, false, false}, // W (Not possible on 7-segment)
-    {false, false, false, false, false, false, false}, // X (Not possible on 7-segment)
-    {false, true,  true,  true,  false, true,  true }, // Y
-    {true,  true,  false, true,  true,  false, true }  // Z (Same representation as '2')
+    {true, true, true, false, true, true, true}, // A
+    {false, false, true, true, true, true,
+     true}, // B (lowercase 'b' style for clarity)
+    {true, false, false, true, true, true, false}, // C
+    {false, true, true, true, true, false,
+     true}, // D (lowercase 'd' style for clarity)
+    {true, false, false, true, true, true, true},  // E
+    {true, false, false, false, true, true, true}, // F
+    {true, false, true, true, true, true, false},  // G
+    {false, true, true, false, true, true, true},  // H
+    {false, true, true, false, false, false,
+     false}, // I (uses right side 'b' and 'c')
+    {false, true, true, true, true, false, false}, // J
+    {false, false, false, false, false, false,
+     false}, // K (Not possible on 7-segment)
+    {false, false, false, true, true, true, false}, // L
+    {false, false, false, false, false, false,
+     false}, // M (Not possible on 7-segment)
+    {false, false, true, false, true, false,
+     true}, // N (lowercase 'n' style for clarity)
+    {true, true, true, true, true, true, false},  // O
+    {true, true, false, false, true, true, true}, // P
+    {true, true, true, false, false, true, true}, // Q
+    {false, false, false, false, true, false,
+     true}, // R (lowercase 'r' style for clarity)
+    {true, false, true, true, false, true, true}, // S
+    {false, false, false, false, false, true,
+     true}, // T (Not possible on 7-segment)
+    {false, true, true, true, true, true, false}, // U
+    {false, false, false, false, false, false,
+     false}, // V (Not possible on 7-segment)
+    {false, false, false, false, false, false,
+     false}, // W (Not possible on 7-segment)
+    {false, false, false, false, false, false,
+     false}, // X (Not possible on 7-segment)
+    {false, true, true, true, false, true, true}, // Y
+    {true, true, false, true, true, false,
+     true} // Z (Same representation as '2')
 };
 
-// Sets all 7-segment display pins (digits + segments) to HIGH
-// PRE: init7SegDisplay() must be called beforehand
+// @breif Sets all 7-segment display pins (digits + segments) to HIGH
+// @pre init7SegDisplay() must be called beforehand
 static void resetDisplay4Dig(void) {
   // Turn OFF all digit lines (PC0, PC1, PC4, PC5 -> LOW)
   GPIOC->BSRR =
@@ -66,8 +79,8 @@ static void resetDisplay4Dig(void) {
   GPIOB->BSRR = (1U << 0) | (1U << 1) | (1U << 2) | (1U << 6) | (1U << 7);
 }
 
-// selects or deslects the specific digit based on val
-// PRE: init7SegDisplay() must be called beforehand
+// @breif selects or deslects the specific digit based on val
+// @pre init7SegDisplay() must be called beforehand
 static void configDig(uint8_t digit, bool select) {
   switch (digit) {
   case 0:
@@ -87,9 +100,9 @@ static void configDig(uint8_t digit, bool select) {
   }
 }
 
-// modify the specific segment by either turning it on (val = true) or off
-// (val = false), if di
-// PRE: init7SegDisplay() must be called beforehand
+// @brief modify the specific segment by either turning it on (val = true) or
+// off (val = false), if di
+// @pre init7SegDisplay() must be called beforehand
 static void configSeg(char seg, bool select) {
   switch (seg) {
   case 'a':
@@ -121,14 +134,11 @@ static void configSeg(char seg, bool select) {
   }
 }
 
-// displays 4 digit unsigned number for delayTime in ms,
-// if num > 9999 it does not display, if tim == NULL it would use a backup loop
-// (not precise)
-// resets the screen before starting and returning
 uint32_t displayNumber4Dig(uint32_t num, TIM_TypeDef *tim, uint32_t delayTime,
                            volatile bool *reset) {
-  if (num > 9999)
+  if (num > 9999 || !tim) {
     return 0;
+  }
 
   uint16_t digits[4] = {num / 1000U, (num / 100U) % 10U, (num / 10U) % 10U,
                         num % 10U};
@@ -136,7 +146,7 @@ uint32_t displayNumber4Dig(uint32_t num, TIM_TypeDef *tim, uint32_t delayTime,
   // Convert total delay time (ms) into rapid 1ms multiplex iterations
   for (uint32_t elapsed = 0; elapsed < delayTime; elapsed += 4) {
 
-    if (*reset) {
+    if (reset && *reset) {
       resetDisplay4Dig();
       return elapsed;
     }
@@ -159,7 +169,7 @@ uint32_t displayNumber4Dig(uint32_t num, TIM_TypeDef *tim, uint32_t delayTime,
 
 uint32_t displayTime4Dig(uint32_t fHalf, uint32_t sHalf, TIM_TypeDef *tim,
                          uint32_t delayTime, volatile bool *reset) {
-  if (fHalf > 99 || sHalf > 99) {
+  if (fHalf > 99 || sHalf > 99 || !tim) {
     return 0;
   }
 
@@ -168,7 +178,7 @@ uint32_t displayTime4Dig(uint32_t fHalf, uint32_t sHalf, TIM_TypeDef *tim,
 
   for (uint32_t elapsed = 0; elapsed < delayTime; elapsed += 4) {
 
-    if (*reset) {
+    if (reset && *reset) {
       resetDisplay4Dig();
       return elapsed;
     }
@@ -195,7 +205,7 @@ uint32_t displayTime4Dig(uint32_t fHalf, uint32_t sHalf, TIM_TypeDef *tim,
 
 uint32_t displayStringStatic(const char *str, TIM_TypeDef *tim,
                              uint32_t delayTime, volatile bool *reset) {
-  if (!str || !tim || !reset) {
+  if (!str || !tim) {
     return 0;
   }
 
@@ -215,7 +225,7 @@ uint32_t displayStringStatic(const char *str, TIM_TypeDef *tim,
   for (uint32_t elapsed = 0; elapsed < delayTime;
        elapsed += 4) { // +4 to accomodate for 4ms in display
 
-    if (*reset) {
+    if (reset && *reset) {
       resetDisplay4Dig();
       return elapsed;
     }

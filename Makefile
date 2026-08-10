@@ -1,4 +1,4 @@
-CC = arm-none-eabi-gcc
+CC = arm-none-eabi-gcc -Ichip_headers/CMSIS/Device/ST/STM32F4xx/Include -Ichip_headers/CMSIS/Include
 CFLAGS = -c -mcpu=cortex-m4 -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16 -std=gnu11
 LFLAGS = -nostdlib -T stm32_ls.ld -lgcc
 MAPFLAGS = -Wl,-Map=app.map

@@ -1,6 +1,6 @@
 #include "tim.h"
 #include "stdbool.h"
-#include "stm32f411xe.h"
+#include "chip_headers/CMSIS/Device/ST/STM32F4xx/Include/stm32f411xe.h"
 #include <stdint.h>
 
 #define TIM2_CLOCK_ENABLE (1U << 0)
@@ -13,6 +13,9 @@
 #define UIE_ENABLE (1U << 0)
 
 TIM_TypeDef *timer2Ptr = NULL;
+TIM_TypeDef *timer3Ptr = NULL;
+TIM_TypeDef *timer4Ptr = NULL;
+TIM_TypeDef *timer5Ptr = NULL;
 
 void startTimer(TIM_TypeDef *timer);
 void resetTimer(TIM_TypeDef *timer);
@@ -23,17 +26,19 @@ void initMiliSecTimer(TIM_TypeDef *timer) {
   // enable clock
   if (timer == TIM2) {
     RCC->APB1ENR |= TIM2_CLOCK_ENABLE;
+    timer2Ptr = timer;
   } else if (timer == TIM3) {
     RCC->APB1ENR |= TIM3_CLOCK_ENABLE;
+    timer3Ptr = timer;
   } else if (timer == TIM4) {
     RCC->APB1ENR |= TIM4_CLOCK_ENABLE;
+    timer4Ptr = timer;
   } else if (timer == TIM5) {
     RCC->APB1ENR |= TIM5_CLOCK_ENABLE;
+    timer5Ptr = timer;
   } else {
     return;
   }
-
-  timer2Ptr = timer;
 
   // clock is default to 16MHZ, prescale to 10000HZ
   timer->PSC = 1600 - 1;
@@ -70,17 +75,9 @@ void delay(uint32_t delay, TIM_TypeDef *tim, volatile bool *onReset) {
       while (!hasHEV(tim))
         ;
     }
-  } else {
-    for (uint32_t i = 0; i < delay * 1000; i++) {
-      if (*onReset) {
-        break;
-      }
-    }
   }
 }
 
-// sets the interupt for timer,
-// if tim not one of TIM5, TIM4, TIM3 or TIM2 it will do nothing
 void setInterupt(bool interEn, TIM_TypeDef *tim) {
   int32_t TIMx_IRQn;
 
