@@ -4,6 +4,8 @@
 #include "stdbool.h"
 #define LINE13 (1U << 13)
 
+// NOTE: Uses pin C13 for managing the user button
+
 // initializes the pc13 and attaches it to the exti13 for allowing
 // interputs
 // NOTE: it has falling_edge detection

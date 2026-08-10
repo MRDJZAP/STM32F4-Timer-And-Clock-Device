@@ -1,5 +1,6 @@
 #include "stdbool.h"
 #include "stm32f411xe.h"
+#include "stringMod.h"
 #include "tim.h"
 #include <stdint.h>
 
@@ -21,18 +22,35 @@ bool numBuffer[10][7] = {
     {true, true, true, true, false, true, true}      // 9
 };
 
-// PC0 -> D1
-// PC1 -> D2
-// PC4 -> D3
-// PC5 -> D4
-// PB2 -> a
-// PC8 -> b
-// PC6 -> c
-// PC7 -> d
-// PB6 -> e
-// PB7 -> f
-// PB0 -> g
-// PB1 -> dp
+bool charBuffer[26][7] = {
+    // a      b      c      d      e      f      g
+    {true,  true,  true,  false, true,  true,  true }, // A
+    {false, false, true,  true,  true,  true,  true }, // B (lowercase 'b' style for clarity)
+    {true,  false, false, true,  true,  true,  false}, // C
+    {false, true,  true,  true,  true,  false, true }, // D (lowercase 'd' style for clarity)
+    {true,  false, false, true,  true,  true,  true }, // E
+    {true,  false, false, false, true,  true,  true }, // F
+    {true,  false, true,  true,  true,  true,  false}, // G
+    {false, true,  true,  false, true,  true,  true }, // H
+    {false, true,  true,  false, false, false, false}, // I (uses right side 'b' and 'c')
+    {false, true,  true,  true,  true,  false, false}, // J
+    {false, false, false, false, false, false, false}, // K (Not possible on 7-segment)
+    {false, false, false, true,  true,  true,  false}, // L
+    {false, false, false, false, false, false, false}, // M (Not possible on 7-segment)
+    {false, false, true,  false, true,  false, true }, // N (lowercase 'n' style for clarity)
+    {true,  true,  true,  true,  true,  true,  false}, // O
+    {true,  true,  false, false, true,  true,  true }, // P
+    {true,  true,  true,  false, false, true,  true }, // Q
+    {false, false, false, false, true,  false, true }, // R (lowercase 'r' style for clarity)
+    {true,  false, true,  true,  false, true,  true }, // S
+    {false, false, false, false, false, true,  true }, // T (Not possible on 7-segment)
+    {false, true,  true,  true,  true,  true,  false}, // U
+    {false, false, false, false, false, false, false}, // V (Not possible on 7-segment)
+    {false, false, false, false, false, false, false}, // W (Not possible on 7-segment)
+    {false, false, false, false, false, false, false}, // X (Not possible on 7-segment)
+    {false, true,  true,  true,  false, true,  true }, // Y
+    {true,  true,  false, true,  true,  false, true }  // Z (Same representation as '2')
+};
 
 // Sets all 7-segment display pins (digits + segments) to HIGH
 // PRE: init7SegDisplay() must be called beforehand
@@ -165,6 +183,51 @@ uint32_t displayTime4Dig(uint32_t fHalf, uint32_t sHalf, TIM_TypeDef *tim,
 
       if (i == 1) {
         configSeg('h', true);
+      }
+
+      delay(1, tim, reset);
+    }
+  }
+
+  resetDisplay4Dig();
+  return 0;
+}
+
+uint32_t displayStringStatic(const char *str, TIM_TypeDef *tim,
+                             uint32_t delayTime, volatile bool *reset) {
+  if (!str || !tim || !reset) {
+    return 0;
+  }
+
+  // this should contain only alphabetical letters
+  char lowerCasedBuff[4] = {0, 0, 0, 0};
+
+  // convert string to all lowercased, Good for performance
+  for (uint32_t i = 0; i < strLen(str); i++) {
+    if (str[i] >= 'A' && str[i] <= 'z') {
+      lowerCasedBuff[i] = toLower(str[i]);
+      continue;
+    }
+
+    lowerCasedBuff[i] = 0;
+  }
+
+  for (uint32_t elapsed = 0; elapsed < delayTime;
+       elapsed += 4) { // +4 to accomodate for 4ms in display
+
+    if (*reset) {
+      resetDisplay4Dig();
+      return elapsed;
+    }
+
+    for (uint32_t i = 0; i < 4; i++) {
+      resetDisplay4Dig();
+      configDig(i, true);
+
+      for (uint32_t j = 0; j < 7; j++) {
+        // k is default to empty digit
+        char letter = lowerCasedBuff[i] != 0 ? lowerCasedBuff[i] : 'k';
+        configSeg('a' + j, charBuffer[letter - 'a'][j]);
       }
 
       delay(1, tim, reset);

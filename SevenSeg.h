@@ -44,6 +44,13 @@ uint32_t displayNumber4Dig(uint32_t num, TIM_TypeDef *tim, uint32_t delayTime,
 uint32_t displayTime4Dig(uint32_t fHalf, uint32_t sHalf, TIM_TypeDef *tim,
                          uint32_t delayTime, volatile bool *reset);
 
+// Displays a 4 digit string for delayTime in ms,
+// if any of the pointers are NULL, returns immediately
+// PRE: init7SegDispaly() must be called beforehand,
+//      str must be a null terminated string
+uint32_t displayStringStatic(const char *str, TIM_TypeDef *tim,
+                             uint32_t delayTime, volatile bool *reset);
+
 // initializes the 7 segment display by setting up the corresponding GPIO pins
 // connecting to the dispalay
 void init7SegDisplay();

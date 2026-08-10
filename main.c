@@ -91,7 +91,7 @@ void timerMode(void) {
     timerCount();
 
   } else { // start/continue alarm
-    displayTime4Dig(0, 0, timer2Ptr, 500, &isButtonPressed);
+    displayNumber4Dig(0, timer2Ptr, 500, &isButtonPressed);
     beep(4, 100, timer2Ptr, &isButtonPressed);
   }
 }
@@ -203,7 +203,7 @@ void handleButton() {
       beep(2, 50, timer2Ptr, &isButtonPressed);
     }
 
-    if (timePressed == 1000) { // equivalant to 4 seconds
+    if (timePressed == 800) { // equivalant to 4 seconds
       // entered reset mode
       beep(4, 50, timer2Ptr, &isButtonPressed);
     }
@@ -220,15 +220,16 @@ void handleButton() {
 
     timerFunc = curFunc; // presist state of timer when in clock mode
   } else {
+    beep(1, 50, timer2Ptr, &isButtonPressed);
     if (mode == TIMER) {
       curFunc = clockMode;
       mode = CLOCK;
+      displayStringStatic("C", timer2Ptr, 500, &isButtonPressed);
     } else {
       curFunc = timerFunc;
       mode = TIMER;
+      displayStringStatic("P", timer2Ptr, 500, &isButtonPressed);
     }
-
-    beep(1, 50, timer2Ptr, &isButtonPressed);
   }
 
   setExti13Interupt(true);

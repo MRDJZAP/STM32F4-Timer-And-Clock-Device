@@ -15,7 +15,7 @@
 - Nucleo-F411 development board (1ea.)
 
 **Circuit Diagram:**  
-(!!! PNG)
+(!!! ADD)
 
 ### How To Run:  
 
@@ -26,3 +26,4 @@
 2. Connect your development board to the computer and run `make load` to flash the program to the MCU
 
 **Usage:**
+(!!! ADD)
