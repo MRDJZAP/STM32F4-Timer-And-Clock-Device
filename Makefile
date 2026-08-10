@@ -1,5 +1,5 @@
 CC = arm-none-eabi-gcc
-CFLAGS = -c -mcpu=cortex-m4 -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16 -std=gnu11 -I/home/younes/STM32CubeIDE/workspace_2.2.0/chip_headers/CMSIS/Device/ST/STM32F4xx/Include -I/home/younes/STM32CubeIDE/workspace_2.2.0/chip_headers/CMSIS/Include
+CFLAGS = -c -mcpu=cortex-m4 -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16 -std=gnu11
 LFLAGS = -nostdlib -T stm32_ls.ld -lgcc
 MAPFLAGS = -Wl,-Map=app.map
 
