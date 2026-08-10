@@ -1,0 +1,1 @@
+"**Declaration of Origin**: The entirety of the source code in this repository has been authored directly by human contributors. No Large Language Models (LLMs) or generative artificial intelligence coding assistants were utilized in the drafting, debugging, or architectural design of this software."
