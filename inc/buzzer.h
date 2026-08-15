@@ -2,7 +2,7 @@
 #define BUZZER_H
 
 #include "stdint.h"
-#include "chip_headers/CMSIS/Device/ST/STM32F4xx/Include/stm32f411xe.h"
+#include "stm32f411xe.h"
 
 /*
  * NOTE: uses GPIO pin C2

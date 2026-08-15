@@ -1,26 +1,51 @@
-CC = arm-none-eabi-gcc -Ichip_headers/CMSIS/Device/ST/STM32F4xx/Include -Ichip_headers/CMSIS/Include
-CFLAGS = -c -mcpu=cortex-m4 -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16 -std=gnu11
-LFLAGS = -nostdlib -T stm32_ls.ld -lgcc
-MAPFLAGS = -Wl,-Map=app.map
+# Toolchain configuration
+PREFIX   ?= arm-none-eabi-
+CC       := $(PREFIX)gcc
+LD       := $(PREFIX)gcc
 
-all: app.elf
+# Target binary name
+TARGET_NAME := app.elf
 
-# 1. Automatically find all .c files in the current folder
-SRCS = $(wildcard *.c)
+# Directory definitions
+SRC_DIR   := src
+INC_DIR   := inc
+OBJ_DIR   := obj
+BUILD_DIR := build
 
-# 2. Transform the list of .c files into a list of .o files
-OBJS = $(SRCS:.c=.o)
+# Output target ELF path
+TARGET    := $(BUILD_DIR)/$(TARGET_NAME)
 
-# 3. Link rule: Dynamically uses the automatically generated $(OBJS) list
-app.elf: $(OBJS)
-	${CC} ${LFLAGS} $^ -o $@ ${MAPFLAGS}
+# MCU Architecture Flags (e.g., STM32F411 Cortex-M4)
+MCUFLAGS  := -mcpu=cortex-m4 -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16
 
-# 4. Pattern rule: This single rule replaces all individual .c compilation rules!
-%.o: %.c
-	${CC} ${CFLAGS} $< -o $@
+# Compiler & Linker Flags
+CFLAGS    := $(MCUFLAGS) -Wall -I$(INC_DIR)/chip_headers/CMSIS/Include/ -I$(INC_DIR)/chip_headers/CMSIS/Device/ST/STM32F4xx/Include/ -Iinc/
+LDFLAGS   := $(MCUFLAGS) -T $(SRC_DIR)/stm32_ls.ld -Wl,-Map=$(BUILD_DIR)/app.map -nostartfiles
 
+# Automatically locate all .c files
+C_SRCS    := $(wildcard $(SRC_DIR)/*.c)
+
+# Map source file paths in src/ to object file paths in obj/
+OBJS      := $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(C_SRCS))
+
+# Default build rule
+all: $(TARGET)
+
+# Rule to link object files into the final .elf target
+$(TARGET): $(OBJS) | $(BUILD_DIR)
+	$(LD) $(LDFLAGS) $^ -o $@
+
+# Rule to compile C files into obj/*.o
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# Order-only rule to create output directories on the fly
+$(OBJ_DIR) $(BUILD_DIR):
+	mkdir -p $@
+
+# Clean rule to remove output directories
 clean:
-	rm -rf *.o *.map *.elf
+	rm -rf $(OBJ_DIR)/*.* $(BUILD_DIR)/*.*
 
-load: app.elf
-	openocd -f st_nucleo_f4.cfg -c "init" -c "reset init" -c "flash write_image erase app.elf" -c "verify_image app.elf" -c "reset run" -c "shutdown"
+load: build/app.elf
+	openocd -f st_nucleo_f4.cfg -c "init" -c "reset init" -c "flash write_image erase build/app.elf" -c "verify_image build/app.elf" -c "reset run" -c "shutdown"

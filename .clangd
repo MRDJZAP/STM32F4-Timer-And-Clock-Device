@@ -1,0 +1,7 @@
+CompileFlags:
+  Add:
+    - -I../inc/chip_headers/CMSIS/Device/ST/STM32F4xx/Include
+    - -I../inc/chip_headers/CMSIS/Include
+    - -I../inc/
+    - -Ichip_headers/CMSIS/Device/ST/STM32F4xx/Include
+    - -Ichip_headers/CMSIS/Include

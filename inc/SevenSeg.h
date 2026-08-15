@@ -3,7 +3,7 @@
 
 #include "stdbool.h"
 #include "stdint.h"
-#include "chip_headers/CMSIS/Device/ST/STM32F4xx/Include/stm32f411xe.h"
+#include "stm32f411xe.h"
 #include "tim.h"
 #include <stdint.h>
 
