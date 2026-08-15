@@ -33,3 +33,7 @@
 - To set the timer switch to timer and do the same proccess as for setting the clock, in this case for seconds and minutes.
 - To pause timer, switch to timer mode and press the blue button for 2 seconds followed by 2 beeps.
 - The timer will count even when displaying clock.
+
+
+### **New Features:**
+- Two independent alarms that can function with timer, clock and one other alarm.
